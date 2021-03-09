@@ -1,0 +1,60 @@
+---
+- name: "Demo Facts"
+  hosts: nodo01
+  tasks:
+    - name: "Imprimir"
+      debug:
+        var: ansible_facts
+    - name: "Varios"
+      debug:
+        msg: >
+          El nodo {{ ansible_facts['hostname'] }} tiene configurada la IP {{ ansible_facts['default_ipv4']['address'] }}
+          y su dirección mac es {{ ansible_facts['default_ipv4']['macaddress'] }}
+    - name: "Creación de fichero"
+      file:
+        path: "/tmp/datos_{{ ansible_facts['hostname'] }}.txt"
+        state: touch
+        mode: 0655
+    - name: "Insercion de datos fichero"
+      blockinfile:
+        path: "/tmp/datos_{{ ansible_facts['hostname'] }}.txt"
+        block: |
+          IP: {{ ansible_facts['default_ipv4']['address'] }}
+          MACADDRESS: {{ ansible_facts['default_ipv4']['macaddress'] }}
+          GATEWAY: {{ ansible_facts['default_ipv4']['gateway'] }}
+          NETMASK: {{ ansible_facts['default_ipv4']['netmask'] }}
+        create: yes
+# - name: "Tocando disco"
+#   hosts: nodo1
+#   tasks:
+#     - name: "Particionando"
+#     - name: "Crear PV"
+#     - name: "Crear VG"
+#     - name: "Crear LV"
+#     - name: "Crear fs con extensión xfs"
+#     - name: "Crear ruta de montaje"
+#       file:
+#         path: "/mnt/prueba"
+#         state: directory
+#     - name: "Montarlo"
+#       mount:
+#         path: "/mnt/prueba"
+#         src: ""
+#         fstype: xfs
+#         state: present
+
+- name: "Introducir datos del disco"
+  hosts: nodo1
+  tasks:
+    - name: "Introducir datos del nuevo disco"
+      blockinfile:
+        path: "/tmp/datos_{{ ansible_facts['hostname'] }}.txt"
+        block: |
+          Nombre dispositivo: {{ item['device'] }}
+          Montaje: {{ item['mount'] }}
+          Tamaño total: {{ item['size_total'] }}
+        create: yes
+      loop: "{{ ansible_mounts }}"
+...
+
+
